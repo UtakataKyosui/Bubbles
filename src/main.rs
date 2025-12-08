@@ -28,8 +28,11 @@ async fn main() -> Result<()> {
     // Create app
     let mut app = App::new().await?;
 
-    // Initial fetch (blocking for simplicity in MVP)
+    // Initial fetch
     app.refresh_timeline().await;
+
+    let mut last_tick = std::time::Instant::now();
+    let tick_rate = std::time::Duration::from_secs(60); // Auto refresh every 60s
 
     loop {
         terminal.draw(|f| ui(f, &app))?;
@@ -54,7 +57,7 @@ async fn main() -> Result<()> {
                      }
                 } else {
                     match key.code {
-                        KeyCode::Char('q') => break,
+                        KeyCode::Esc => break,
                         KeyCode::Char('r') => {
                             app.refresh_timeline().await;
                         }
@@ -69,6 +72,11 @@ async fn main() -> Result<()> {
         
         if app.should_quit {
             break;
+        }
+        
+        if last_tick.elapsed() >= tick_rate {
+            app.refresh_timeline().await;
+            last_tick = std::time::Instant::now();
         }
     }
 

@@ -1,8 +1,8 @@
 use ratatui::{
-    layout::{Constraint, Direction, Layout},
+    layout::{Constraint, Direction, Layout, Rect},
     style::{Color, Style},
     text::{Line, Span},
-    widgets::{Block, Borders, List, ListItem, Paragraph},
+    widgets::{Block, Borders, Clear, List, ListItem, Paragraph, Wrap},
     Frame,
 };
 use crate::app::App;
@@ -39,8 +39,6 @@ pub fn ui(f: &mut Frame, app: &App) {
 
             ListItem::new(vec![
                 Line::from(vec![
-                    Span::styled(format!("Pubkey: {}", event.pubkey), Style::default().fg(Color::Blue)),
-                    Span::raw(" "),
                     Span::styled(format!("[Trust: {:.2}]", trust_score), Style::default().fg(trust_color)),
                 ]),
                 Line::from(Span::raw(content)),
@@ -51,23 +49,44 @@ pub fn ui(f: &mut Frame, app: &App) {
         .collect();
 
     let list = List::new(items)
-        .block(Block::default().borders(Borders::ALL).title("Bubble Timeline (Press 'r' to refresh, 'q' to quit)"));
+        .block(Block::default().borders(Borders::ALL).title("Bubble Timeline (Press 'r' to refresh, 'Esc' to quit)"));
 
     f.render_widget(list, chunks[0]);
     
-    let input_style = if app.input_mode {
-        Style::default().fg(Color::Yellow)
-    } else {
-        Style::default().fg(Color::DarkGray)
-    };
     
-    let input = Paragraph::new(app.input.clone())
-        .style(input_style)
-        .block(Block::default().borders(Borders::ALL).title("Post (Press 'i' to edit, 'Enter' to send, 'Esc' to cancel)"));
-    f.render_widget(input, chunks[1]);
+    if app.input_mode {
+        let area = centered_rect(60, 25, f.area());
+        f.render_widget(Clear, area); // Clear background for popup effect
+        
+        let input = Paragraph::new(app.input.clone())
+            .style(Style::default().fg(Color::Yellow))
+            .wrap(Wrap { trim: true })
+            .block(Block::default().borders(Borders::ALL).title("Post (Esc to cancel, Enter to submit)"));
+        f.render_widget(input, area);
+    }
 
     let status = Paragraph::new(app.status.clone())
         .style(Style::default().fg(Color::Yellow))
         .block(Block::default().borders(Borders::TOP));
     f.render_widget(status, chunks[2]);
+}
+
+fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
+    let popup_layout = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([
+            Constraint::Percentage((100 - percent_y) / 2),
+            Constraint::Percentage(percent_y),
+            Constraint::Percentage((100 - percent_y) / 2),
+        ])
+        .split(r);
+
+    Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints([
+            Constraint::Percentage((100 - percent_x) / 2),
+            Constraint::Percentage(percent_x),
+            Constraint::Percentage((100 - percent_x) / 2),
+        ])
+        .split(popup_layout[1])[1]
 }
