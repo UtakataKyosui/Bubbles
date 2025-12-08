@@ -37,7 +37,7 @@ async fn main() -> Result<()> {
     loop {
         terminal.draw(|f| ui(f, &mut app))?;
 
-        if crossterm::event::poll(std::time::Duration::from_millis(100))? {
+        if crossterm::event::poll(std::time::Duration::from_millis(16))? {
             if let Event::Key(key) = event::read()? {
                 if app.input_mode {
                      match key.code {

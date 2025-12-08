@@ -5,6 +5,8 @@ use ratatui::{
     widgets::{Block, Borders, Clear, List, ListItem, Paragraph, Wrap},
     Frame,
 };
+use std::time::Duration;
+use tachyonfx::{fx, EffectRenderer};
 use crate::app::App;
 
 pub fn ui(f: &mut Frame, app: &mut App) {
@@ -94,6 +96,22 @@ pub fn ui(f: &mut Frame, app: &mut App) {
         .style(Style::default().fg(Color::Yellow))
         .block(Block::default().borders(Borders::TOP));
     f.render_widget(status, chunks[2]);
+
+    // Visual Effects
+    let elapsed = app.start_time.elapsed().as_secs_f32();
+    let hue_shift = (elapsed * 0.05) % 1.0; // Slow cycle
+    
+    // Apply subtle HSL shift to the whole timeline area (chunks[0])
+    // Using a tuple for HSL shift (Hue, Saturation, Lightness) - verify signature
+    // tachyonfx 0.21: hsl_shift_fg takes [f32; 3] or similar?
+    let mut shader = fx::hsl_shift(
+        Some([hue_shift, 0.0, 0.0]), 
+        None, 
+        100
+    );
+    
+    // Use EffectRenderer trait method
+    f.render_effect(&mut shader, chunks[0], Duration::ZERO.into());
 }
 
 fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {

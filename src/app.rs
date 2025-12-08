@@ -19,6 +19,7 @@ pub struct App<'a> {
     pub input: TextArea<'a>,
     pub input_mode: bool,
     pub scroll_state: ratatui::widgets::ListState,
+    pub start_time: std::time::Instant,
 }
 
 impl<'a> App<'a> {
@@ -44,6 +45,7 @@ impl<'a> App<'a> {
             input: TextArea::default(),
             input_mode: false,
             scroll_state: ratatui::widgets::ListState::default(),
+            start_time: std::time::Instant::now(),
         })
     }
 
