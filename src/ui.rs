@@ -248,41 +248,39 @@ fn render_popup(f: &mut Frame, app: &mut App) {
 }
 
 fn render_visual_effects(f: &mut Frame, app: &App, area: Rect) {
-     use tachyonfx::{Motion, EffectTimer, Interpolation, CenteredShrink};
+     use tachyonfx::{Motion, EffectTimer, Interpolation, CellFilter};
+     use ratatui::layout::Margin;
      
      let elapsed_secs = app.start_time.elapsed().as_secs_f32();
      
-     // 1. Rainbow Hue Cycle (Base Glow)
+     // Define the Border Filter (Outer 1 cell)
+     let border_filter = CellFilter::Outer(Margin::new(1, 1));
+
+     // 1. Rainbow Hue Cycle (Border Only)
      let hue_shift = (elapsed_secs * 0.2) % 1.0; 
      let mut rainbow_shader = fx::hsl_shift(
         Some([hue_shift, 0.5, 0.1]), 
         None,
         20
-    );
+    ).with_filter(border_filter.clone());
+    
      f.render_effect(&mut rainbow_shader, area, Duration::ZERO.into());
 
-    // 2. Distinct Scanner Light (Sweep)
-    // We use a sweep that runs continuously by re-creating it with a specific usage pattern?
-    // Actually, `sweep_in` is finite. To loop it, we need to map `elapsed` to the shader's internal time.
-    // The 5th argument is `T: Into<EffectTimer>`.
-    
+    // 2. Distinct Scanner Light (Sweep) - Border Only
     let loop_duration = 3.0; // 3 seconds loop
     let current_time_ms = (elapsed_secs * 1000.0) as u64;
     let loop_time_ms = (current_time_ms % (loop_duration as u64 * 1000)) as u64;
     
-    // We manually simulate the sweep by only rendering it if we are in the active window?
-    // Or we rely on `render_effect` using the duration we pass.
-    
     let pattern_width = 15;
     
-    // Create a sweep shader
+    // Create a sweep shader restricted to border
     let mut sweep_shader = fx::sweep_in(
         Motion::LeftToRight,
         pattern_width,
         0,
         Color::Cyan,
         EffectTimer::from_ms((loop_duration * 1000.0) as u32, Interpolation::Linear)
-    );
+    ).with_filter(border_filter);
     
     // Convert to tachyonfx::Duration via Into
     let d: tachyonfx::Duration = Duration::from_millis(loop_time_ms).into();
