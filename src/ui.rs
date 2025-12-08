@@ -34,20 +34,31 @@ const NEON_THEME: Theme = Theme {
 };
 
 pub fn ui(f: &mut Frame, app: &mut App) {
-    let chunks = Layout::default()
+    // Root layout: Content + Footer
+    let root_layout = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
             Constraint::Min(0),
-            Constraint::Length(1), // Footer/Status
+            Constraint::Length(1), 
         ])
         .split(f.area());
 
-    render_timeline(f, app, chunks[0]);
-    render_status_bar(f, app, chunks[1]);
+    // Main layout: Timeline (Left 80%) + Sidebar (Right 20%)
+    let main_layout = Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints([
+            Constraint::Percentage(80),
+            Constraint::Percentage(20),
+        ])
+        .split(root_layout[0]);
+
+    render_timeline(f, app, main_layout[0]);
+    render_sidebar(f, app, main_layout[1]); // New Sidebar Component
+    render_status_bar(f, app, root_layout[1]);
     render_popup(f, app);
     
     // Apply Global Visual Effects (HSL Shift on Border/Glow)
-    render_visual_effects(f, app, chunks[0]);
+    render_visual_effects(f, app, main_layout[0]);
 }
 
 fn render_timeline(f: &mut Frame, app: &mut App, area: Rect) {
@@ -137,6 +148,58 @@ fn render_timeline(f: &mut Frame, app: &mut App, area: Rect) {
             &mut scrollbar_state
         );
     }
+}
+
+fn render_sidebar(f: &mut Frame, app: &mut App, area: Rect) {
+    let block = Block::default()
+        .borders(Borders::ALL)
+        .border_type(BorderType::Rounded)
+        .border_style(Style::default().fg(Color::DarkGray))
+        .title(" PROFILE ")
+        .title_alignment(Alignment::Center);
+
+    let inner_area = block.inner(area);
+    f.render_widget(block, area);
+
+    // Profile Info
+    let chunks = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([
+            Constraint::Length(4), // Avatar/Name area
+            Constraint::Min(0),    // Activity/Stats
+        ])
+        .split(inner_area);
+
+    let pubkey_short = &app.own_pubkey.to_string()[0..8];
+    
+    let profile_text = vec![
+        Line::from(Span::styled("ME", Style::default().fg(NEON_THEME.trust_high).add_modifier(Modifier::BOLD))),
+        Line::from(Span::styled(format!("@{}", pubkey_short), Style::default().fg(Color::Cyan))),
+    ];
+    
+    let profile_widget = Paragraph::new(profile_text)
+        .alignment(Alignment::Center)
+        .block(Block::default().borders(Borders::BOTTOM).border_style(Style::default().fg(Color::DarkGray)));
+        
+    f.render_widget(profile_widget, chunks[0]);
+    
+    // Activity Stats (Mock for now)
+    let stats_text = vec![
+        Line::from(""),
+        Line::from(Span::styled("Statistics", Style::default().add_modifier(Modifier::UNDERLINED))),
+        Line::from(format!("Posts: {}", app.timeline.iter().filter(|e| e.pubkey == app.own_pubkey).count())),
+        Line::from("Trust: 100%"),
+        Line::from(""),
+        Line::from(Span::styled("Network", Style::default().add_modifier(Modifier::UNDERLINED))),
+        Line::from("Relays: 1"),
+        Line::from(format!("Peers: {}", app.trust_scores.len())),
+    ];
+    
+    let stats_widget = Paragraph::new(stats_text)
+        .style(Style::default().fg(NEON_THEME.text))
+        .wrap(Wrap { trim: true });
+        
+    f.render_widget(stats_widget, chunks[1]);
 }
 
 fn render_status_bar(f: &mut Frame, app: &App, area: Rect) {

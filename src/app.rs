@@ -20,6 +20,7 @@ pub struct App<'a> {
     pub input_mode: bool,
     pub scroll_state: ratatui::widgets::ListState,
     pub start_time: std::time::Instant,
+    pub own_pubkey: PublicKey,
 }
 
 impl<'a> App<'a> {
@@ -46,6 +47,7 @@ impl<'a> App<'a> {
             input_mode: false,
             scroll_state: ratatui::widgets::ListState::default(),
             start_time: std::time::Instant::now(),
+            own_pubkey: my_key,
         })
     }
 
