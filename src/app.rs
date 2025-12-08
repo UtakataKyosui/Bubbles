@@ -43,7 +43,11 @@ impl<'a> App<'a> {
             trust_scores: HashMap::new(),
             fact_checker: checker,
             verifications: HashMap::new(),
-            input: TextArea::default(),
+            input: {
+                let mut textarea = TextArea::default();
+                textarea.set_placeholder_text("What's happenning?");
+                textarea
+            },
             input_mode: false,
             scroll_state: ratatui::widgets::ListState::default(),
             start_time: std::time::Instant::now(),
@@ -60,7 +64,11 @@ impl<'a> App<'a> {
         match self.client.publish_text_note(&content).await {
             Ok(_) => {
                 self.status = "Published!".to_string();
-                self.input = TextArea::default();
+                self.input = {
+                    let mut textarea = TextArea::default();
+                    textarea.set_placeholder_text("What's happenning?");
+                    textarea
+                };
                 self.input_mode = false;
                 self.refresh_timeline().await;
             },

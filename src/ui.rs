@@ -234,6 +234,7 @@ fn render_popup(f: &mut Frame, app: &mut App) {
                 .border_style(Style::default().fg(NEON_THEME.trust_med))
                 .title(" NEW POST (Ctrl+Enter to submit) ")
                 .title_alignment(Alignment::Center)
+                .title_bottom(Line::from(" Enter: Newline │ ^Enter: Submit │ Esc: Cancel ").alignment(Alignment::Center))
         );
         app.input.set_style(Style::default().fg(NEON_THEME.text));
         app.input.set_cursor_style(Style::default().bg(NEON_THEME.trust_med).fg(Color::Black));
