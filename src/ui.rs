@@ -183,6 +183,7 @@ fn render_sidebar(f: &mut Frame, app: &mut App, area: Rect) {
         
     f.render_widget(profile_widget, chunks[0]);
     
+    
     // Activity Stats (Mock for now)
     let stats_text = vec![
         Line::from(""),
@@ -200,21 +201,35 @@ fn render_sidebar(f: &mut Frame, app: &mut App, area: Rect) {
         .wrap(Wrap { trim: true });
         
     f.render_widget(stats_widget, chunks[1]);
+    
+    // Key Hints Section (Bottom of Sidebar)
+    let hints_area = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([Constraint::Min(0), Constraint::Length(10)])
+        .split(inner_area)[1];
+        
+    let hints_text = vec![
+        Line::from(Span::styled("CONTROLS", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD))),
+        Line::from(Span::raw("────────────────")),
+        Line::from(vec![Span::styled("i", Style::default().fg(NEON_THEME.trust_med)), Span::raw(" : Post")]),
+        Line::from(vec![Span::styled("Enter", Style::default().fg(NEON_THEME.trust_med)), Span::raw(" : Submit")]),
+        Line::from(vec![Span::styled("S+Enter", Style::default().fg(NEON_THEME.trust_med)), Span::raw(": NewLine")]),
+        Line::from(vec![Span::styled("r", Style::default().fg(NEON_THEME.trust_med)), Span::raw(" : Refresh")]),
+        Line::from(vec![Span::styled("j/k", Style::default().fg(NEON_THEME.trust_med)), Span::raw(" : Scroll")]),
+        Line::from(vec![Span::styled("Esc", Style::default().fg(NEON_THEME.trust_med)), Span::raw(" : Quit")]),
+    ];
+    
+    let hints_widget = Paragraph::new(hints_text)
+        .style(Style::default().fg(Color::DarkGray));
+    
+    f.render_widget(hints_widget, hints_area);
 }
 
 fn render_status_bar(f: &mut Frame, app: &App, area: Rect) {
-    let layout = Layout::default()
-        .direction(Direction::Horizontal)
-        .constraints([
-            Constraint::Min(0),     // Status (Left)
-            Constraint::Length(60), // Keys (Right)
-        ])
-        .split(area);
-
+    // Simplified Status Bar (Since we have hints in sidebar/popup)
     let mode_str = if app.input_mode { "EDIT MODE" } else { "NORMAL" };
     let mode_color = if app.input_mode { NEON_THEME.trust_med } else { NEON_THEME.trust_high };
 
-    // Left: Status
     let status_text = vec![
         Span::styled(format!(" {} ", mode_str), Style::default().fg(Color::Black).bg(mode_color).add_modifier(Modifier::BOLD)),
         Span::raw(" "),
@@ -222,19 +237,7 @@ fn render_status_bar(f: &mut Frame, app: &App, area: Rect) {
     ];
     let status_p = Paragraph::new(Line::from(status_text))
         .block(Block::default().borders(Borders::TOP).border_style(Style::default().fg(Color::DarkGray)));
-    f.render_widget(status_p, layout[0]);
-
-    // Right: Key Hints
-    let keys_text = Line::from(vec![
-        Span::styled("[R]efresh ", Style::default().fg(Color::DarkGray)),
-        Span::styled("[i] Post ", Style::default().fg(NEON_THEME.trust_high).add_modifier(Modifier::BOLD)),
-        Span::styled("[J/K]Scroll ", Style::default().fg(Color::DarkGray)),
-        Span::styled("[Esc]Quit", Style::default().fg(Color::DarkGray)),
-    ]);
-    let keys_p = Paragraph::new(keys_text)
-        .alignment(Alignment::Right)
-        .block(Block::default().borders(Borders::TOP).border_style(Style::default().fg(Color::DarkGray)));
-    f.render_widget(keys_p, layout[1]);
+    f.render_widget(status_p, area);
 }
 
 fn render_popup(f: &mut Frame, app: &mut App) {
@@ -260,17 +263,16 @@ fn render_popup(f: &mut Frame, app: &mut App) {
 
 fn render_visual_effects(f: &mut Frame, app: &App, area: Rect) {
      let elapsed = app.start_time.elapsed().as_secs_f32();
-     let hue_shift = (elapsed * 0.1) % 1.0; 
-    
-    // Subtle HSL shift effect on the main border
-    let mut shader = fx::hsl_shift(
-        Some([hue_shift, 0.1, 0.0]), // Only slight Hue shift, no massive lightness boost
-        None, 
-        100
+     
+     // "Rainbow Border" Loop
+     // High saturation and lightness cycle to simulate a gaming PC / neon light loop
+     let hue_shift = (elapsed * 0.5) % 1.0; // Faster cycle
+     let mut rainbow_shader = fx::hsl_shift(
+        Some([hue_shift, 0.8, 0.3]), // Full cycle Hue, Boost Saturation, Boost Lightness
+        None,
+        50
     );
-    
-    // Use EffectRenderer trait method
-    f.render_effect(&mut shader, area, Duration::ZERO.into());
+     f.render_effect(&mut rainbow_shader, area, Duration::ZERO.into());
 }
 
 fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
