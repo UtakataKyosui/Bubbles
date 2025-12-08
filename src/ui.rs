@@ -119,7 +119,7 @@ fn render_timeline(f: &mut Frame, app: &mut App, area: Rect) {
             .borders(Borders::ALL)
             .border_type(BorderType::Rounded)
             .border_style(Style::default().fg(NEON_THEME.border))
-            .title(" 🫧 BUBBLE ")
+            .title(" 🫧 BUBBLE (Press 'i' to Post) ")
             .title_alignment(Alignment::Center))
         .highlight_style(Style::default().bg(NEON_THEME.highlight_bg))
         .highlight_symbol(""); // Removed symbol to make it cleaner, background change is enough
@@ -212,7 +212,7 @@ fn render_status_bar(f: &mut Frame, app: &App, area: Rect) {
         Span::styled(format!(" {} ", app.status), Style::default().fg(NEON_THEME.text)),
         Span::raw(" │ "),
         Span::styled(" [R]efresh ", Style::default().fg(Color::DarkGray)),
-        Span::styled(" [I]nsert ", Style::default().fg(Color::DarkGray)),
+        Span::styled(" [i] Post ", Style::default().fg(NEON_THEME.trust_high).add_modifier(Modifier::BOLD)),
         Span::styled(" [J/K]Scroll ", Style::default().fg(Color::DarkGray)),
         Span::styled(" [Esc]Quit ", Style::default().fg(Color::DarkGray)),
     ];
@@ -232,9 +232,9 @@ fn render_popup(f: &mut Frame, app: &mut App) {
                 .borders(Borders::ALL)
                 .border_type(BorderType::Double) // Double border for popup
                 .border_style(Style::default().fg(NEON_THEME.trust_med))
-                .title(" NEW POST (Ctrl+Enter to submit) ")
+                .title(" NEW POST ")
                 .title_alignment(Alignment::Center)
-                .title_bottom(Line::from(" Enter: Newline │ ^Enter: Submit │ Esc: Cancel ").alignment(Alignment::Center))
+                .title_bottom(Line::from(" Enter: Submit │ Shift+Enter: Newline │ Esc: Cancel ").alignment(Alignment::Center))
         );
         app.input.set_style(Style::default().fg(NEON_THEME.text));
         app.input.set_cursor_style(Style::default().bg(NEON_THEME.trust_med).fg(Color::Black));

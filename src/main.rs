@@ -42,8 +42,12 @@ async fn main() -> Result<()> {
                 if app.input_mode {
                      use crossterm::event::KeyModifiers;
                      match key.code {
-                        KeyCode::Enter if key.modifiers.contains(KeyModifiers::CONTROL) => {
-                            app.publish_input().await;
+                        KeyCode::Enter => {
+                            if key.modifiers.contains(KeyModifiers::SHIFT) {
+                                app.input.input(key);
+                            } else {
+                                app.publish_input().await;
+                            }
                         }
                         KeyCode::Esc => {
                             app.input_mode = false;
