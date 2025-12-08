@@ -230,16 +230,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "bubble-sim"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "bubble-core",
- "nostr-sdk",
- "tokio",
-]
-
-[[package]]
 name = "bubble-tui"
 version = "0.1.0"
 dependencies = [
