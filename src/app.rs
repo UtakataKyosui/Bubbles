@@ -17,6 +17,7 @@ pub struct App {
     pub verifications: HashMap<EventId, String>,
     pub input: String,
     pub input_mode: bool,
+    pub scroll_state: ratatui::widgets::ListState,
 }
 
 impl App {
@@ -41,6 +42,7 @@ impl App {
             verifications: HashMap::new(),
             input: String::new(),
             input_mode: false,
+            scroll_state: ratatui::widgets::ListState::default(),
         })
     }
 
@@ -126,5 +128,36 @@ impl App {
             }
         }
     }
-    
+
+    pub fn scroll_down(&mut self) {
+        if self.timeline.is_empty() { return; }
+        
+        let i = match self.scroll_state.selected() {
+            Some(i) => {
+                if i >= self.timeline.len() - 1 {
+                    self.timeline.len() - 1
+                } else {
+                    i + 1
+                }
+            }
+            None => 0,
+        };
+        self.scroll_state.select(Some(i));
+    }
+
+    pub fn scroll_up(&mut self) {
+        if self.timeline.is_empty() { return; }
+
+        let i = match self.scroll_state.selected() {
+            Some(i) => {
+                if i == 0 {
+                    0
+                } else {
+                    i - 1
+                }
+            }
+            None => 0,
+        };
+        self.scroll_state.select(Some(i));
+    }
 }

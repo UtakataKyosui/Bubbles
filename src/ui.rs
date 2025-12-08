@@ -7,7 +7,7 @@ use ratatui::{
 };
 use crate::app::App;
 
-pub fn ui(f: &mut Frame, app: &App) {
+pub fn ui(f: &mut Frame, app: &mut App) {
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
@@ -49,9 +49,11 @@ pub fn ui(f: &mut Frame, app: &App) {
         .collect();
 
     let list = List::new(items)
-        .block(Block::default().borders(Borders::ALL).title("Bubble Timeline (r: Refresh, i: Post, Esc: Quit)"));
+        .block(Block::default().borders(Borders::ALL).title("Bubble Timeline (r: Refresh, i: Post, Esc: Quit)"))
+        .highlight_style(Style::default().fg(Color::White).bg(Color::DarkGray))
+        .highlight_symbol(">> ");
 
-    f.render_widget(list, chunks[0]);
+    f.render_stateful_widget(list, chunks[0], &mut app.scroll_state);
     
     
     if app.input_mode {

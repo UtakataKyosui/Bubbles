@@ -35,7 +35,7 @@ async fn main() -> Result<()> {
     let tick_rate = std::time::Duration::from_secs(10); // Auto refresh every 10s
 
     loop {
-        terminal.draw(|f| ui(f, &app))?;
+        terminal.draw(|f| ui(f, &mut app))?;
 
         if crossterm::event::poll(std::time::Duration::from_millis(100))? {
             if let Event::Key(key) = event::read()? {
@@ -63,6 +63,12 @@ async fn main() -> Result<()> {
                         }
                         KeyCode::Char('i') => {
                             app.input_mode = true;
+                        }
+                        KeyCode::Down | KeyCode::Char('j') => {
+                            app.scroll_down();
+                        }
+                        KeyCode::Up | KeyCode::Char('k') => {
+                            app.scroll_up();
                         }
                         _ => {}
                     }
