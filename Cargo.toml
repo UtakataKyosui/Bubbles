@@ -1,0 +1,3 @@
+[workspace]
+members = ["bubble-core", "bubble-sim", "bubble-tui"]
+resolver = "2"

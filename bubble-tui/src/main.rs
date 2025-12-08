@@ -1,0 +1,64 @@
+use std::io;
+use ratatui::{
+    backend::CrosstermBackend,
+    Terminal,
+};
+use crossterm::{
+    event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode},
+    execute,
+    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
+};
+use anyhow::Result;
+
+mod app;
+mod ui;
+
+use app::App;
+use ui::ui;
+
+#[tokio::main]
+async fn main() -> Result<()> {
+    // Setup terminal
+    enable_raw_mode()?;
+    let mut stdout = io::stdout();
+    execute!(stdout, EnterAlternateScreen, EnableMouseCapture)?;
+    let backend = CrosstermBackend::new(stdout);
+    let mut terminal = Terminal::new(backend)?;
+
+    // Create app
+    let mut app = App::new().await?;
+
+    // Initial fetch (blocking for simplicity in MVP)
+    app.refresh_timeline().await;
+
+    loop {
+        terminal.draw(|f| ui(f, &app))?;
+
+        if crossterm::event::poll(std::time::Duration::from_millis(100))? {
+            if let Event::Key(key) = event::read()? {
+                match key.code {
+                    KeyCode::Char('q') => break,
+                    KeyCode::Char('r') => {
+                        app.refresh_timeline().await;
+                    }
+                    _ => {}
+                }
+            }
+        }
+        
+        if app.should_quit {
+            break;
+        }
+    }
+
+    // Restore terminal
+    disable_raw_mode()?;
+    execute!(
+        terminal.backend_mut(),
+        LeaveAlternateScreen,
+        DisableMouseCapture
+    )?;
+    terminal.show_cursor()?;
+
+    Ok(())
+}

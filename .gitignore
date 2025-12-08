@@ -1,0 +1,6 @@
+/target
+/bubble_keys.json
+*.db
+*.db-shm
+*.db-wal
+.env
