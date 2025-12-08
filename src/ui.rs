@@ -1,66 +1,119 @@
 use ratatui::{
-    layout::{Constraint, Direction, Layout, Rect},
-    style::{Color, Style},
+    layout::{Constraint, Direction, Layout, Rect, Alignment},
+    style::{Color, Style, Modifier},
     text::{Line, Span},
-    widgets::{Block, Borders, Clear, List, ListItem, Paragraph, Wrap},
+    widgets::{Block, Borders, Clear, List, ListItem, Paragraph, Wrap, BorderType},
     Frame,
 };
 use std::time::Duration;
 use tachyonfx::{fx, EffectRenderer};
 use crate::app::App;
+use chrono::{DateTime, Utc};
+
+// --- Theme Definition ---
+struct Theme {
+    bg: Color,
+    text: Color,
+    border: Color,
+    trust_high: Color,
+    trust_med: Color,
+    trust_low: Color,
+    warning: Color,
+    highlight_bg: Color,
+}
+
+const NEON_THEME: Theme = Theme {
+    bg: Color::Black,
+    text: Color::Rgb(220, 220, 220), // Off-white
+    border: Color::Rgb(0, 255, 255), // Cyan
+    trust_high: Color::Rgb(57, 255, 20), // Neon Green
+    trust_med: Color::Rgb(255, 240, 31), // Neon Yellow
+    trust_low: Color::Rgb(100, 100, 100), // Grey
+    warning: Color::Rgb(255, 0, 255), // Magenta
+    highlight_bg: Color::Rgb(20, 20, 40), // Dark Blue-ish for selection
+};
 
 pub fn ui(f: &mut Frame, app: &mut App) {
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
             Constraint::Min(0),
-            Constraint::Length(3),
-            Constraint::Length(1),
+            Constraint::Length(1), // Footer/Status
         ])
         .split(f.area());
 
+    render_timeline(f, app, chunks[0]);
+    render_status_bar(f, app, chunks[1]);
+    render_popup(f, app);
+    
+    // Apply Global Visual Effects (HSL Shift on Border/Glow)
+    render_visual_effects(f, app, chunks[0]);
+}
+
+fn render_timeline(f: &mut Frame, app: &mut App, area: Rect) {
     let items: Vec<ListItem> = app.timeline
         .iter()
         .map(|event| {
-            let content = event.content.clone();
-            
+            // -- Trust Score Logic --
             let trust_score = app.trust_scores.get(&event.pubkey).copied().unwrap_or(0.0);
             let trust_color = if trust_score >= 1.0 {
-                Color::Green
+                NEON_THEME.trust_high
             } else if trust_score >= 0.5 {
-                Color::Yellow
+                NEON_THEME.trust_med
             } else {
-                Color::Gray
+                NEON_THEME.trust_low
             };
 
-            let verification_line = if let Some(verdict) = app.verifications.get(&event.id) {
-               Line::from(Span::styled(format!("⚠ FACT CHECK: {}", verdict), Style::default().fg(Color::Magenta)))
-            } else {
-               Line::from(Span::raw(""))
-            };
+            // -- Time Logic --
+            let created_at = DateTime::<Utc>::from_timestamp(event.created_at.as_u64() as i64, 0)
+                .unwrap_or(Utc::now());
+            let time_str = created_at.format("%H:%M").to_string();
 
-            ListItem::new(vec![
-                Line::from(vec![
-                    Span::styled(format!("[Trust: {:.2}]", trust_score), Style::default().fg(trust_color)),
-                ]),
-                Line::from(Span::raw(content)),
-                verification_line,
-                Line::from(Span::styled("---", Style::default().fg(Color::DarkGray))),
-            ])
+            // -- Metadata Line --
+            let metadata_line = Line::from(vec![
+                Span::styled(format!("TRUST {:.2}", trust_score), Style::default().fg(trust_color).add_modifier(Modifier::BOLD)),
+                Span::raw(" │ "),
+                Span::styled(format!("@{}", &event.pubkey.to_string()[0..8]), Style::default().fg(Color::Cyan)),
+                Span::raw(".. │ "),
+                Span::styled(time_str, Style::default().fg(Color::DarkGray)),
+            ]);
+
+            // -- Content Handling --
+            let content_lines: Vec<Line> = event.content.lines().map(|l| {
+                Line::from(Span::styled(l, Style::default().fg(NEON_THEME.text)))
+            }).collect();
+
+            // -- Fact Check Warning --
+            let mut lines = vec![
+                Line::from(""), // Spacer top
+                metadata_line,
+                Line::from(""), // Spacer
+            ];
+            lines.extend(content_lines);
+            
+            if let Some(verdict) = app.verifications.get(&event.id) {
+                 lines.push(Line::from(""));
+                 lines.push(Line::from(Span::styled(format!("⚠ VERIFIED: {}", verdict), Style::default().fg(NEON_THEME.warning).add_modifier(Modifier::BOLD))));
+            }
+            
+            lines.push(Line::from("")); // Spacer bottom
+            lines.push(Line::from(Span::styled("─".repeat(area.width as usize), Style::default().fg(Color::DarkGray)))); // Separator
+
+            ListItem::new(lines)
         })
         .collect();
 
     let list = List::new(items)
         .block(Block::default()
             .borders(Borders::ALL)
-            .border_type(ratatui::widgets::BorderType::Rounded) // Rounded corners
-            .border_style(Style::default().fg(Color::Cyan)) // Neon Cyan default
-            .title(" Bubble Timeline (r: Refresh, i: Post, Esc: Quit) ")
-            .title_alignment(ratatui::layout::Alignment::Center)) // Center title
-        .highlight_style(Style::default().fg(Color::Black).bg(Color::Cyan)) // High contrast highlight
-        .highlight_symbol(" ➤ ");
+            .border_type(BorderType::Rounded)
+            .border_style(Style::default().fg(NEON_THEME.border))
+            .title(" 🫧 BUBBLE ")
+            .title_alignment(Alignment::Center))
+        .highlight_style(Style::default().bg(NEON_THEME.highlight_bg))
+        .highlight_symbol(""); // Removed symbol to make it cleaner, background change is enough
 
-    f.render_stateful_widget(list, chunks[0], &mut app.scroll_state);
+    f.render_stateful_widget(list, area, &mut app.scroll_state);
 
     // Scrollbar
     use ratatui::widgets::Scrollbar;
@@ -68,7 +121,7 @@ pub fn ui(f: &mut Frame, app: &mut App) {
     use ratatui::widgets::ScrollbarState;
 
     let total_height = app.timeline.len();
-    let viewport_height = chunks[0].height as usize;
+    let viewport_height = area.height as usize;
     if total_height > viewport_height {
         let mut scrollbar_state = ScrollbarState::default()
              .content_length(total_height)
@@ -77,47 +130,68 @@ pub fn ui(f: &mut Frame, app: &mut App) {
         f.render_stateful_widget(
             Scrollbar::default()
                 .orientation(ScrollbarOrientation::VerticalRight)
-                .begin_symbol(Some("↑"))
-                .end_symbol(Some("↓")),
-            chunks[0],
+                .begin_symbol(Some("▲"))
+                .end_symbol(Some("▼"))
+                .style(Style::default().fg(NEON_THEME.border)),
+            area,
             &mut scrollbar_state
         );
     }
-    
+}
+
+fn render_status_bar(f: &mut Frame, app: &App, area: Rect) {
+    let mode_str = if app.input_mode { "EDIT MODE" } else { "NORMAL" };
+    let mode_color = if app.input_mode { NEON_THEME.trust_med } else { NEON_THEME.trust_high };
+
+    let status_text = vec![
+        Span::styled(format!(" {} ", mode_str), Style::default().fg(Color::Black).bg(mode_color).add_modifier(Modifier::BOLD)),
+        Span::raw(" "),
+        Span::styled(format!(" {} ", app.status), Style::default().fg(NEON_THEME.text)),
+        Span::raw(" │ "),
+        Span::styled(" [R]efresh ", Style::default().fg(Color::DarkGray)),
+        Span::styled(" [I]nsert ", Style::default().fg(Color::DarkGray)),
+        Span::styled(" [J/K]Scroll ", Style::default().fg(Color::DarkGray)),
+        Span::styled(" [Esc]Quit ", Style::default().fg(Color::DarkGray)),
+    ];
+
+    let p = Paragraph::new(Line::from(status_text))
+        .block(Block::default().borders(Borders::TOP).border_style(Style::default().fg(Color::DarkGray)));
+    f.render_widget(p, area);
+}
+
+fn render_popup(f: &mut Frame, app: &mut App) {
     if app.input_mode {
-        let area = centered_rect(60, 25, f.area());
-        f.render_widget(Clear, area); // Clear background for popup effect
+        let area = centered_rect(60, 30, f.area());
+        f.render_widget(Clear, area);
         
         app.input.set_block(
              Block::default()
                 .borders(Borders::ALL)
-                .title("Post (Esc to cancel, Enter to submit)")
+                .border_type(BorderType::Double) // Double border for popup
+                .border_style(Style::default().fg(NEON_THEME.trust_med))
+                .title(" NEW POST ")
+                .title_alignment(Alignment::Center)
         );
-        app.input.set_style(Style::default().fg(Color::Yellow));
+        app.input.set_style(Style::default().fg(NEON_THEME.text));
+        app.input.set_cursor_style(Style::default().bg(NEON_THEME.trust_med).fg(Color::Black));
+        
         f.render_widget(&app.input, area);
     }
+}
 
-    let status = Paragraph::new(app.status.clone())
-        .style(Style::default().fg(Color::Yellow).bg(Color::Black))
-        .block(Block::default()
-            .borders(Borders::ALL)
-            .border_type(ratatui::widgets::BorderType::Rounded)
-            .border_style(Style::default().fg(Color::Magenta)));
-    f.render_widget(status, chunks[2]);
-
-    // Visual Effects
-    let elapsed = app.start_time.elapsed().as_secs_f32();
-    let hue_shift = (elapsed * 0.2) % 1.0; // Faster cycle (was 0.05)
+fn render_visual_effects(f: &mut Frame, app: &App, area: Rect) {
+     let elapsed = app.start_time.elapsed().as_secs_f32();
+     let hue_shift = (elapsed * 0.1) % 1.0; 
     
-    // Use aggressive params: [hue, saturation_boost, lightness_boost]
+    // Subtle HSL shift effect on the main border
     let mut shader = fx::hsl_shift(
-        Some([hue_shift, 0.5, 0.1]), // Boost Saturation (+50%) and Lightness (+10%)
+        Some([hue_shift, 0.1, 0.0]), // Only slight Hue shift, no massive lightness boost
         None, 
         100
     );
     
     // Use EffectRenderer trait method
-    f.render_effect(&mut shader, chunks[0], Duration::ZERO.into());
+    f.render_effect(&mut shader, area, Duration::ZERO.into());
 }
 
 fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
