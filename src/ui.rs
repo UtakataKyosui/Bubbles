@@ -49,7 +49,7 @@ pub fn ui(f: &mut Frame, app: &App) {
         .collect();
 
     let list = List::new(items)
-        .block(Block::default().borders(Borders::ALL).title("Bubble Timeline (Press 'r' to refresh, 'Esc' to quit)"));
+        .block(Block::default().borders(Borders::ALL).title("Bubble Timeline (r: Refresh, i: Post, Esc: Quit)"));
 
     f.render_widget(list, chunks[0]);
     

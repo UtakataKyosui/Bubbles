@@ -32,7 +32,7 @@ async fn main() -> Result<()> {
     app.refresh_timeline().await;
 
     let mut last_tick = std::time::Instant::now();
-    let tick_rate = std::time::Duration::from_secs(60); // Auto refresh every 60s
+    let tick_rate = std::time::Duration::from_secs(10); // Auto refresh every 10s
 
     loop {
         terminal.draw(|f| ui(f, &app))?;
