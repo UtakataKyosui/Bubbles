@@ -51,9 +51,14 @@ pub fn ui(f: &mut Frame, app: &mut App) {
         .collect();
 
     let list = List::new(items)
-        .block(Block::default().borders(Borders::ALL).title("Bubble Timeline (r: Refresh, i: Post, Esc: Quit)"))
-        .highlight_style(Style::default().fg(Color::White).bg(Color::DarkGray))
-        .highlight_symbol(">> ");
+        .block(Block::default()
+            .borders(Borders::ALL)
+            .border_type(ratatui::widgets::BorderType::Rounded) // Rounded corners
+            .border_style(Style::default().fg(Color::Cyan)) // Neon Cyan default
+            .title(" Bubble Timeline (r: Refresh, i: Post, Esc: Quit) ")
+            .title_alignment(ratatui::layout::Alignment::Center)) // Center title
+        .highlight_style(Style::default().fg(Color::Black).bg(Color::Cyan)) // High contrast highlight
+        .highlight_symbol(" ➤ ");
 
     f.render_stateful_widget(list, chunks[0], &mut app.scroll_state);
 
@@ -93,19 +98,20 @@ pub fn ui(f: &mut Frame, app: &mut App) {
     }
 
     let status = Paragraph::new(app.status.clone())
-        .style(Style::default().fg(Color::Yellow))
-        .block(Block::default().borders(Borders::TOP));
+        .style(Style::default().fg(Color::Yellow).bg(Color::Black))
+        .block(Block::default()
+            .borders(Borders::ALL)
+            .border_type(ratatui::widgets::BorderType::Rounded)
+            .border_style(Style::default().fg(Color::Magenta)));
     f.render_widget(status, chunks[2]);
 
     // Visual Effects
     let elapsed = app.start_time.elapsed().as_secs_f32();
-    let hue_shift = (elapsed * 0.05) % 1.0; // Slow cycle
+    let hue_shift = (elapsed * 0.2) % 1.0; // Faster cycle (was 0.05)
     
-    // Apply subtle HSL shift to the whole timeline area (chunks[0])
-    // Using a tuple for HSL shift (Hue, Saturation, Lightness) - verify signature
-    // tachyonfx 0.21: hsl_shift_fg takes [f32; 3] or similar?
+    // Use aggressive params: [hue, saturation_boost, lightness_boost]
     let mut shader = fx::hsl_shift(
-        Some([hue_shift, 0.0, 0.0]), 
+        Some([hue_shift, 0.5, 0.1]), // Boost Saturation (+50%) and Lightness (+10%)
         None, 
         100
     );
