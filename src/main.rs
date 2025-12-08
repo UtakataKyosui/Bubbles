@@ -40,8 +40,9 @@ async fn main() -> Result<()> {
         if crossterm::event::poll(std::time::Duration::from_millis(16))? {
             if let Event::Key(key) = event::read()? {
                 if app.input_mode {
+                     use crossterm::event::KeyModifiers;
                      match key.code {
-                        KeyCode::Enter => {
+                        KeyCode::Enter if key.modifiers.contains(KeyModifiers::CONTROL) => {
                             app.publish_input().await;
                         }
                         KeyCode::Esc => {

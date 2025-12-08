@@ -232,7 +232,7 @@ fn render_popup(f: &mut Frame, app: &mut App) {
                 .borders(Borders::ALL)
                 .border_type(BorderType::Double) // Double border for popup
                 .border_style(Style::default().fg(NEON_THEME.trust_med))
-                .title(" NEW POST ")
+                .title(" NEW POST (Ctrl+Enter to submit) ")
                 .title_alignment(Alignment::Center)
         );
         app.input.set_style(Style::default().fg(NEON_THEME.text));
