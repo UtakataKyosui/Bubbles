@@ -54,17 +54,40 @@ pub fn ui(f: &mut Frame, app: &mut App) {
         .highlight_symbol(">> ");
 
     f.render_stateful_widget(list, chunks[0], &mut app.scroll_state);
-    
+
+    // Scrollbar
+    use ratatui::widgets::Scrollbar;
+    use ratatui::widgets::ScrollbarOrientation;
+    use ratatui::widgets::ScrollbarState;
+
+    let total_height = app.timeline.len();
+    let viewport_height = chunks[0].height as usize;
+    if total_height > viewport_height {
+        let mut scrollbar_state = ScrollbarState::default()
+             .content_length(total_height)
+             .position(app.scroll_state.selected().unwrap_or(0));
+        
+        f.render_stateful_widget(
+            Scrollbar::default()
+                .orientation(ScrollbarOrientation::VerticalRight)
+                .begin_symbol(Some("↑"))
+                .end_symbol(Some("↓")),
+            chunks[0],
+            &mut scrollbar_state
+        );
+    }
     
     if app.input_mode {
         let area = centered_rect(60, 25, f.area());
         f.render_widget(Clear, area); // Clear background for popup effect
         
-        let input = Paragraph::new(app.input.clone())
-            .style(Style::default().fg(Color::Yellow))
-            .wrap(Wrap { trim: true })
-            .block(Block::default().borders(Borders::ALL).title("Post (Esc to cancel, Enter to submit)"));
-        f.render_widget(input, area);
+        app.input.set_block(
+             Block::default()
+                .borders(Borders::ALL)
+                .title("Post (Esc to cancel, Enter to submit)")
+        );
+        app.input.set_style(Style::default().fg(Color::Yellow));
+        f.render_widget(&app.input, area);
     }
 
     let status = Paragraph::new(app.status.clone())

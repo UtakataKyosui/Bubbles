@@ -47,13 +47,9 @@ async fn main() -> Result<()> {
                         KeyCode::Esc => {
                             app.input_mode = false;
                         }
-                        KeyCode::Char(c) => {
-                            app.input.push(c);
+                        _ => {
+                            app.input.input(key);
                         }
-                        KeyCode::Backspace => {
-                            app.input.pop();
-                        }
-                        _ => {}
                      }
                 } else {
                     match key.code {
