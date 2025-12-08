@@ -203,23 +203,38 @@ fn render_sidebar(f: &mut Frame, app: &mut App, area: Rect) {
 }
 
 fn render_status_bar(f: &mut Frame, app: &App, area: Rect) {
+    let layout = Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints([
+            Constraint::Min(0),     // Status (Left)
+            Constraint::Length(60), // Keys (Right)
+        ])
+        .split(area);
+
     let mode_str = if app.input_mode { "EDIT MODE" } else { "NORMAL" };
     let mode_color = if app.input_mode { NEON_THEME.trust_med } else { NEON_THEME.trust_high };
 
+    // Left: Status
     let status_text = vec![
         Span::styled(format!(" {} ", mode_str), Style::default().fg(Color::Black).bg(mode_color).add_modifier(Modifier::BOLD)),
         Span::raw(" "),
         Span::styled(format!(" {} ", app.status), Style::default().fg(NEON_THEME.text)),
-        Span::raw(" │ "),
-        Span::styled(" [R]efresh ", Style::default().fg(Color::DarkGray)),
-        Span::styled(" [i] Post ", Style::default().fg(NEON_THEME.trust_high).add_modifier(Modifier::BOLD)),
-        Span::styled(" [J/K]Scroll ", Style::default().fg(Color::DarkGray)),
-        Span::styled(" [Esc]Quit ", Style::default().fg(Color::DarkGray)),
     ];
-
-    let p = Paragraph::new(Line::from(status_text))
+    let status_p = Paragraph::new(Line::from(status_text))
         .block(Block::default().borders(Borders::TOP).border_style(Style::default().fg(Color::DarkGray)));
-    f.render_widget(p, area);
+    f.render_widget(status_p, layout[0]);
+
+    // Right: Key Hints
+    let keys_text = Line::from(vec![
+        Span::styled("[R]efresh ", Style::default().fg(Color::DarkGray)),
+        Span::styled("[i] Post ", Style::default().fg(NEON_THEME.trust_high).add_modifier(Modifier::BOLD)),
+        Span::styled("[J/K]Scroll ", Style::default().fg(Color::DarkGray)),
+        Span::styled("[Esc]Quit", Style::default().fg(Color::DarkGray)),
+    ]);
+    let keys_p = Paragraph::new(keys_text)
+        .alignment(Alignment::Right)
+        .block(Block::default().borders(Borders::TOP).border_style(Style::default().fg(Color::DarkGray)));
+    f.render_widget(keys_p, layout[1]);
 }
 
 fn render_popup(f: &mut Frame, app: &mut App) {
@@ -234,7 +249,7 @@ fn render_popup(f: &mut Frame, app: &mut App) {
                 .border_style(Style::default().fg(NEON_THEME.trust_med))
                 .title(" NEW POST ")
                 .title_alignment(Alignment::Center)
-                .title_bottom(Line::from(" Enter: Submit │ Shift+Enter: Newline │ Esc: Cancel ").alignment(Alignment::Center))
+                .title_bottom(Line::from(" Enter: Submit │ Shift+Enter: Newline │ Esc: Cancel ").alignment(Alignment::Right))
         );
         app.input.set_style(Style::default().fg(NEON_THEME.text));
         app.input.set_cursor_style(Style::default().bg(NEON_THEME.trust_med).fg(Color::Black));
