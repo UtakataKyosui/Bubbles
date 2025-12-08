@@ -36,12 +36,33 @@ async fn main() -> Result<()> {
 
         if crossterm::event::poll(std::time::Duration::from_millis(100))? {
             if let Event::Key(key) = event::read()? {
-                match key.code {
-                    KeyCode::Char('q') => break,
-                    KeyCode::Char('r') => {
-                        app.refresh_timeline().await;
+                if app.input_mode {
+                     match key.code {
+                        KeyCode::Enter => {
+                            app.publish_input().await;
+                        }
+                        KeyCode::Esc => {
+                            app.input_mode = false;
+                        }
+                        KeyCode::Char(c) => {
+                            app.input.push(c);
+                        }
+                        KeyCode::Backspace => {
+                            app.input.pop();
+                        }
+                        _ => {}
+                     }
+                } else {
+                    match key.code {
+                        KeyCode::Char('q') => break,
+                        KeyCode::Char('r') => {
+                            app.refresh_timeline().await;
+                        }
+                        KeyCode::Char('i') => {
+                            app.input_mode = true;
+                        }
+                        _ => {}
                     }
-                    _ => {}
                 }
             }
         }

@@ -12,6 +12,7 @@ pub fn ui(f: &mut Frame, app: &App) {
         .direction(Direction::Vertical)
         .constraints([
             Constraint::Min(0),
+            Constraint::Length(3),
             Constraint::Length(1),
         ])
         .split(f.area());
@@ -53,9 +54,20 @@ pub fn ui(f: &mut Frame, app: &App) {
         .block(Block::default().borders(Borders::ALL).title("Bubble Timeline (Press 'r' to refresh, 'q' to quit)"));
 
     f.render_widget(list, chunks[0]);
+    
+    let input_style = if app.input_mode {
+        Style::default().fg(Color::Yellow)
+    } else {
+        Style::default().fg(Color::DarkGray)
+    };
+    
+    let input = Paragraph::new(app.input.clone())
+        .style(input_style)
+        .block(Block::default().borders(Borders::ALL).title("Post (Press 'i' to edit, 'Enter' to send, 'Esc' to cancel)"));
+    f.render_widget(input, chunks[1]);
 
     let status = Paragraph::new(app.status.clone())
         .style(Style::default().fg(Color::Yellow))
         .block(Block::default().borders(Borders::TOP));
-    f.render_widget(status, chunks[1]);
+    f.render_widget(status, chunks[2]);
 }

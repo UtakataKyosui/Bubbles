@@ -15,6 +15,8 @@ pub struct App {
     pub trust_scores: HashMap<PublicKey, f64>,
     pub fact_checker: FactChecker,
     pub verifications: HashMap<EventId, String>,
+    pub input: String,
+    pub input_mode: bool,
 }
 
 impl App {
@@ -37,7 +39,27 @@ impl App {
             trust_scores: HashMap::new(),
             fact_checker: checker,
             verifications: HashMap::new(),
+            input: String::new(),
+            input_mode: false,
         })
+    }
+
+    pub async fn publish_input(&mut self) {
+        if self.input.is_empty() {
+             return;
+        }
+        
+        match self.client.publish_text_note(&self.input).await {
+            Ok(_) => {
+                self.status = "Published!".to_string();
+                self.input.clear();
+                self.input_mode = false;
+                self.refresh_timeline().await;
+            },
+            Err(e) => {
+                self.status = format!("Publish Error: {}", e);
+            }
+        }
     }
 
     pub async fn refresh_timeline(&mut self) {
