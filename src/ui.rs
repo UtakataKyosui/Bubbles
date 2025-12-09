@@ -295,10 +295,8 @@ fn render_visual_effects(f: &mut Frame, app: &App, area: Rect) {
                              // But the border characters (│, ─) must exist. They are drawn by Block.
                              // We are just changing their color.
                         }
-                    } else {
-                        // Rest of border: Ensure it is dim (DarkGray)
-                        cell.set_fg(Color::DarkGray);
                     }
+                    // Removed else block to maintain original border visibility
                  }
             };
 
