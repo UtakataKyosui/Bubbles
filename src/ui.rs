@@ -25,7 +25,7 @@ struct Theme {
 const NEON_THEME: Theme = Theme {
     bg: Color::Black,
     text: Color::Rgb(220, 220, 220), // Off-white
-    border: Color::Rgb(0, 100, 255), // Blue
+    border: Color::Rgb(60, 120, 255), // Bright Blue
     trust_high: Color::Rgb(57, 255, 20), // Neon Green
     trust_med: Color::Rgb(255, 240, 31), // Neon Yellow
     trust_low: Color::Rgb(100, 100, 100), // Grey
