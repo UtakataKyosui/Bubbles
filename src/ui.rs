@@ -265,8 +265,8 @@ fn render_visual_effects(f: &mut Frame, app: &App, area: Rect) {
 
     // 2. The "Snake" - Running Light around the border
     // We split into 4 segments + sequential timing
-    // Speed: 15 cells per second
-    let speed = 15.0; 
+    // Speed: 45 cells per second
+    let speed = 45.0; 
     let w = area.width as f32;
     let h = area.height as f32;
     
