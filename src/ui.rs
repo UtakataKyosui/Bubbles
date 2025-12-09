@@ -119,7 +119,11 @@ fn render_timeline(f: &mut Frame, app: &mut App, area: Rect) {
             .borders(Borders::ALL)
             .border_type(BorderType::Rounded)
             .border_style(Style::default().fg(NEON_THEME.border))
-            .title(" 🫧 BUBBLE (Press 'i' to Post) ")
+            .title(Line::from(vec![
+                Span::raw(" 🫧 "),
+                Span::styled("BUBBLE", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
+                Span::styled(" (Press 'i' to Post) ", Style::default().fg(Color::DarkGray)),
+            ]))
             .title_alignment(Alignment::Center))
         .highlight_style(Style::default().bg(NEON_THEME.highlight_bg))
         .highlight_symbol(""); // Removed symbol to make it cleaner, background change is enough
