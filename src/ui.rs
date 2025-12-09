@@ -158,8 +158,8 @@ fn render_sidebar(f: &mut Frame, app: &mut App, area: Rect) {
     let block = Block::default()
         .borders(Borders::ALL)
         .border_type(BorderType::Rounded)
-        .border_style(Style::default().fg(Color::DarkGray))
-        .title(" PROFILE ")
+        .border_style(Style::default().fg(NEON_THEME.border))
+        .title(Span::styled(" PROFILE ", Style::default().fg(NEON_THEME.border).add_modifier(Modifier::BOLD)))
         .title_alignment(Alignment::Center);
 
     let inner_area = block.inner(area);
