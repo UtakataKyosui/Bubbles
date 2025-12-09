@@ -248,43 +248,85 @@ fn render_popup(f: &mut Frame, app: &mut App) {
 }
 
 fn render_visual_effects(f: &mut Frame, app: &App, area: Rect) {
-     use tachyonfx::{Motion, EffectTimer, Interpolation, CellFilter};
+     use tachyonfx::{EffectTimer, Interpolation, CellFilter, Motion}; // Import Motion directly
      use ratatui::layout::Margin;
      
      let elapsed_secs = app.start_time.elapsed().as_secs_f32();
      
-     // Define the Border Filter (Outer 1 cell)
+     // 1. Base Glow (Weak Rainbow on border)
      let border_filter = CellFilter::Outer(Margin::new(1, 1));
-
-     // 1. Rainbow Hue Cycle (Border Only)
-     let hue_shift = (elapsed_secs * 0.2) % 1.0; 
+     let hue_shift = (elapsed_secs * 0.1) % 1.0; 
      let mut rainbow_shader = fx::hsl_shift(
-        Some([hue_shift, 0.5, 0.1]), 
+        Some([hue_shift, 0.3, 0.05]), // Subtle
         None,
         20
-    ).with_filter(border_filter.clone());
-    
+    ).with_filter(border_filter);
      f.render_effect(&mut rainbow_shader, area, Duration::ZERO.into());
 
-    // 2. Distinct Scanner Light (Sweep) - Border Only
-    let loop_duration = 3.0; // 3 seconds loop
-    let current_time_ms = (elapsed_secs * 1000.0) as u64;
-    let loop_time_ms = (current_time_ms % (loop_duration as u64 * 1000)) as u64;
+    // 2. The "Snake" - Running Light around the border
+    // We split into 4 segments + sequential timing
+    // Speed: 15 cells per second
+    let speed = 15.0; 
+    let w = area.width as f32;
+    let h = area.height as f32;
     
-    let pattern_width = 15;
+    // Durations for each segment (in ms)
+    let t_top = ((w / speed) * 1000.0) as u32;
+    let t_right = ((h / speed) * 1000.0) as u32;
+    // Bottom/Left are same length as Top/Right
+    let t_total = (t_top + t_right) * 2;
     
-    // Create a sweep shader restricted to border
-    let mut sweep_shader = fx::sweep_in(
+    // Current loop time
+    let loop_time_ms = (elapsed_secs * 1000.0) as u64 % t_total as u64;
+    let d_loop = Duration::from_millis(loop_time_ms).into(); // tachyonfx duration
+
+    // Snake Parameters
+    let snake_len = 10;
+    let snake_color = Color::White; // Bright distinct light (white for intensity)
+
+    // Top Segment (L->R)
+    let top_rect = Rect::new(area.x, area.y, area.width, 1);
+    let mut fx_top = fx::sweep_in(
         Motion::LeftToRight,
-        pattern_width,
-        0,
-        Color::Cyan,
-        EffectTimer::from_ms((loop_duration * 1000.0) as u32, Interpolation::Linear)
-    ).with_filter(border_filter);
-    
-    // Convert to tachyonfx::Duration via Into
-    let d: tachyonfx::Duration = Duration::from_millis(loop_time_ms).into();
-    f.render_effect(&mut sweep_shader, area, d);
+        snake_len,
+        0, // No delay
+        snake_color,
+        EffectTimer::from_ms(t_top, Interpolation::Linear)
+    );
+    f.render_effect(&mut fx_top, top_rect, d_loop);
+
+    // Right Segment (T->B)
+    let right_rect = Rect::new(area.x + area.width - 1, area.y, 1, area.height);
+    let mut fx_right = fx::sweep_in(
+        Motion::UpToDown,
+        snake_len,
+        t_top as u16, // Start after top finishes (Delay expects u16)
+        snake_color,
+        EffectTimer::from_ms(t_right, Interpolation::Linear)
+    );
+    f.render_effect(&mut fx_right, right_rect, d_loop);
+
+    // Bottom Segment (R->L)
+    let bottom_rect = Rect::new(area.x, area.y + area.height - 1, area.width, 1);
+    let mut fx_bottom = fx::sweep_in(
+        Motion::RightToLeft,
+        snake_len,
+        (t_top + t_right) as u16,
+        snake_color,
+        EffectTimer::from_ms(t_top, Interpolation::Linear)
+    );
+    f.render_effect(&mut fx_bottom, bottom_rect, d_loop);
+
+    // Left Segment (B->T)
+    let left_rect = Rect::new(area.x, area.y, 1, area.height);
+    let mut fx_left = fx::sweep_in(
+        Motion::DownToUp,
+        snake_len,
+        (t_top + t_right + t_top) as u16,
+        snake_color,
+        EffectTimer::from_ms(t_right, Interpolation::Linear)
+    );
+    f.render_effect(&mut fx_left, left_rect, d_loop);
 }
 
 fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
