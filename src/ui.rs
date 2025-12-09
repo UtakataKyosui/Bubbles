@@ -253,16 +253,6 @@ fn render_visual_effects(f: &mut Frame, app: &App, area: Rect) {
      
      let elapsed_secs = app.start_time.elapsed().as_secs_f32();
      
-     // 1. Base Glow (Weak Rainbow on border)
-     let border_filter = CellFilter::Outer(Margin::new(1, 1));
-     let hue_shift = (elapsed_secs * 0.1) % 1.0; 
-     let mut rainbow_shader = fx::hsl_shift(
-        Some([hue_shift, 0.3, 0.05]), // Subtle
-        None,
-        20
-    ).with_filter(border_filter);
-     f.render_effect(&mut rainbow_shader, area, Duration::ZERO.into());
-
     // 2. The "Snake" - Running Light around the border
     // We split into 4 segments + sequential timing
     // Speed: 45 cells per second
