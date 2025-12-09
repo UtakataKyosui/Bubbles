@@ -253,70 +253,7 @@ fn render_visual_effects(f: &mut Frame, app: &App, area: Rect) {
      
      let elapsed_secs = app.start_time.elapsed().as_secs_f32();
      
-    // 2. The "Snake" - Running Light around the border
-    // We split into 4 segments + sequential timing
-    // Speed: 45 cells per second
-    let speed = 45.0; 
-    let w = area.width as f32;
-    let h = area.height as f32;
-    
-    // Durations for each segment (in ms)
-    let t_top = ((w / speed) * 1000.0) as u32;
-    let t_right = ((h / speed) * 1000.0) as u32;
-    // Bottom/Left are same length as Top/Right
-    let t_total = (t_top + t_right) * 2;
-    
-    // Current loop time
-    let loop_time_ms = (elapsed_secs * 1000.0) as u64 % t_total as u64;
-    let d_loop = Duration::from_millis(loop_time_ms).into(); // tachyonfx duration
-
-    // Snake Parameters
-    let snake_len = 10;
-    let snake_color = Color::White; // Bright distinct light (white for intensity)
-
-    // Top Segment (L->R)
-    let top_rect = Rect::new(area.x, area.y, area.width, 1);
-    let mut fx_top = fx::sweep_in(
-        Motion::LeftToRight,
-        snake_len,
-        0, // No delay
-        snake_color,
-        EffectTimer::from_ms(t_top, Interpolation::Linear)
-    );
-    f.render_effect(&mut fx_top, top_rect, d_loop);
-
-    // Right Segment (T->B)
-    let right_rect = Rect::new(area.x + area.width - 1, area.y, 1, area.height);
-    let mut fx_right = fx::sweep_in(
-        Motion::UpToDown,
-        snake_len,
-        t_top as u16, // Start after top finishes (Delay expects u16)
-        snake_color,
-        EffectTimer::from_ms(t_right, Interpolation::Linear)
-    );
-    f.render_effect(&mut fx_right, right_rect, d_loop);
-
-    // Bottom Segment (R->L)
-    let bottom_rect = Rect::new(area.x, area.y + area.height - 1, area.width, 1);
-    let mut fx_bottom = fx::sweep_in(
-        Motion::RightToLeft,
-        snake_len,
-        (t_top + t_right) as u16,
-        snake_color,
-        EffectTimer::from_ms(t_top, Interpolation::Linear)
-    );
-    f.render_effect(&mut fx_bottom, bottom_rect, d_loop);
-
-    // Left Segment (B->T)
-    let left_rect = Rect::new(area.x, area.y, 1, area.height);
-    let mut fx_left = fx::sweep_in(
-        Motion::DownToUp,
-        snake_len,
-        (t_top + t_right + t_top) as u16,
-        snake_color,
-        EffectTimer::from_ms(t_right, Interpolation::Linear)
-    );
-    f.render_effect(&mut fx_left, left_rect, d_loop);
+    // Snake effect removed as per user request (was interpreted as update indicator)
 }
 
 fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
