@@ -248,75 +248,129 @@ fn render_popup(f: &mut Frame, app: &mut App) {
 }
 
 fn render_visual_effects(f: &mut Frame, app: &App, area: Rect) {
-     use tachyonfx::{EffectTimer, Interpolation, CellFilter, Motion}; // Import Motion directly
-     use ratatui::layout::Margin;
-     
-     let elapsed_secs = app.start_time.elapsed().as_secs_f32();
-     
-    // 2. The "Snake" - Running Light around the border
-    // We split into 4 segments + sequential timing
-    // Speed: 100 cells per second (Very fast)
-    let speed = 100.0; 
-    let w = area.width as f32;
-    let h = area.height as f32;
+    use ratatui::widgets::Widget;
+    use ratatui::buffer::Buffer;
     
-    // Durations for each segment (in ms)
-    let t_top = ((w / speed) * 1000.0) as u32;
-    let t_right = ((h / speed) * 1000.0) as u32;
-    // Bottom/Left are same length as Top/Right
-    let t_total = (t_top + t_right) * 2;
+    struct SnakeBorderWidget {
+        elapsed: f32,
+        speed: f32,
+        length: f32,
+        color: Color,
+    }
+
+    impl Widget for SnakeBorderWidget {
+        fn render(self, area: Rect, buf: &mut Buffer) {
+            let w = area.width as f32;
+            let h = area.height as f32;
+            if w < 2.0 || h < 2.0 { return; }
+            
+            // Perimeter path: Top(w) -> Right(h-1) -> Bottom(w-1) -> Left(h-2)
+            // Total = w + h-1 + w-1 + h-2 = 2w + 2h - 4
+            let perimeter = 2.0 * (w + h) - 4.0;
+            let current_pos = (self.elapsed * self.speed) % perimeter;
+            
+            // Helper to determine if a point on perimeter is "active"
+            // We want a gradient tail.
+            let apply_snake = |x: u16, y: u16, dist_on_p: f32, buf: &mut Buffer| {
+                 if let Some(cell) = buf.cell_mut((area.x + x, area.y + y)) {
+                    // Calculate distance from head `current_pos`
+                    // d = (head - point + P) % P
+                    let d = (current_pos - dist_on_p + perimeter) % perimeter;
+                    
+                    if d < self.length {
+                        // It is within the snake (head or tail)
+                        let intensity = 1.0 - (d / self.length);
+                        // KWin-like: Head is White/Bright, Tail fades to Color
+                        if intensity > 0.0 {
+                             // Simple linear fade logic
+                             // Head (intensity near 1.0) -> White
+                             // Tail (intensity near 0.0) -> self.color
+                             if intensity > 0.8 {
+                                 cell.set_fg(Color::White); // Head highlight
+                             } else if intensity > 0.1 {
+                                 cell.set_fg(self.color);
+                             }
+                             // We don't clear the fg if not in snake, to keep original border visible?
+                             // User says "Only this animation". Maybe we should Dim the rest?
+                             // But the border characters (│, ─) must exist. They are drawn by Block.
+                             // We are just changing their color.
+                        }
+                    } else {
+                        // Rest of border: Ensure it is dim (DarkGray)
+                        cell.set_fg(Color::DarkGray);
+                    }
+                 }
+            };
+
+            // Top Edge (0..w-1) -> P=0..w-1
+            for x in 0..area.width {
+                apply_snake(x, 0, x as f32, buf);
+            }
+            // Right Edge (1..h-1) -> P=w..w+h-2
+            for y in 1..area.height {
+                apply_snake(area.width - 1, y, w - 1.0 + y as f32, buf);
+            }
+            // Bottom Edge (w-2..0) -> P=w+h-2 .. 
+            // Correct path for bottom is Right to Left.
+            // Start at x=w-1 (Corner) was right. Next is x=w-2.
+            // Distance accumulates.
+            // Top (w) + Right (h-1) is end of Right edge (bottom-right corner)
+            // Bottom edge starts at bottom-right corner? No, corner is shared.
+            // Let's model cells uniquely.
+            // Top: (0,0) to (w-2, 0). (w-1,0) is TopRight corner.
+            // Right: (w-1, 0) to (w-1, h-2). (w-1, h-1) is BottomRight.
+            // But lets use the visual path.
+            
+            // Let's refine P mapping to be strictly linear along the visual line.
+            
+            // Top: x from 0 to w-1. P = x.
+            // Right: y from 1 to h-1. P = w-1 + y. (Start at P=w)
+            // Bottom: x from w-2 down to 0. P = (w-1 + h-1) + (w-1 - 1 - x).
+            //   Start (x=w-2): P = w+h-2 + 0.
+            //   End (x=0): P = w+h-2 + w-2.
+            // Left: y from h-2 down to 1. P = (w+h-2 + w-1) + (h-1 - 1 - y).
+            //   Start (y=h-2): P = 2w+h-3.
+            //   End (y=1): P = 2w+h-3 + h-3 = 2w+2h-6... wait maths.
+            
+            // Let's just run loop and increment counter `p`.
+            let mut p = 0.0;
+            // Top (0 to w-1)
+            for x in 0..area.width {
+                apply_snake(x, 0, p, buf);
+                p += 1.0;
+            }
+            // Right (1 to h-1)
+            for y in 1..area.height {
+                 apply_snake(area.width - 1, y, p, buf);
+                 p += 1.0;
+            }
+            // Bottom (w-2 down to 0)
+            if area.width > 1 {
+                for x in (0..area.width - 1).rev() {
+                    apply_snake(x, area.height - 1, p, buf);
+                    p += 1.0;
+                }
+            }
+            // Left (h-2 down to 1)
+            if area.height > 1 {
+                for y in (1..area.height - 1).rev() {
+                    apply_snake(0, y, p, buf);
+                    p += 1.0;
+                }
+            }
+        }
+    }
+
+    let elapsed_secs = app.start_time.elapsed().as_secs_f32();
+    let widget = SnakeBorderWidget {
+        elapsed: elapsed_secs,
+        speed: 60.0,    // 60 cells/sec is smooth
+        length: 40.0,   // Long tail for KWin effect
+        color: Color::Cyan, // Cyan is classic KWin
+    };
     
-    // Current loop time
-    let loop_time_ms = (elapsed_secs * 1000.0) as u64 % t_total as u64;
-    let d_loop = Duration::from_millis(loop_time_ms).into(); // tachyonfx duration
-
-    // Snake Parameters
-    let snake_len = 20; // Longer tail
-    let snake_color = Color::Yellow; // High contrast against Cyan border
-
-    // Top Segment (L->R)
-    let top_rect = Rect::new(area.x, area.y, area.width, 1);
-    let mut fx_top = fx::sweep_in(
-        Motion::LeftToRight,
-        snake_len,
-        0, // No delay
-        snake_color,
-        EffectTimer::from_ms(t_top, Interpolation::Linear)
-    );
-    f.render_effect(&mut fx_top, top_rect, d_loop);
-
-    // Right Segment (T->B)
-    let right_rect = Rect::new(area.x + area.width - 1, area.y, 1, area.height);
-    let mut fx_right = fx::sweep_in(
-        Motion::UpToDown,
-        snake_len,
-        t_top as u16, // Start after top finishes (Delay expects u16)
-        snake_color,
-        EffectTimer::from_ms(t_right, Interpolation::Linear)
-    );
-    f.render_effect(&mut fx_right, right_rect, d_loop);
-
-    // Bottom Segment (R->L)
-    let bottom_rect = Rect::new(area.x, area.y + area.height - 1, area.width, 1);
-    let mut fx_bottom = fx::sweep_in(
-        Motion::RightToLeft,
-        snake_len,
-        (t_top + t_right) as u16,
-        snake_color,
-        EffectTimer::from_ms(t_top, Interpolation::Linear)
-    );
-    f.render_effect(&mut fx_bottom, bottom_rect, d_loop);
-
-    // Left Segment (B->T)
-    let left_rect = Rect::new(area.x, area.y, 1, area.height);
-    let mut fx_left = fx::sweep_in(
-        Motion::DownToUp,
-        snake_len,
-        (t_top + t_right + t_top) as u16,
-        snake_color,
-        EffectTimer::from_ms(t_right, Interpolation::Linear)
-    );
-    f.render_effect(&mut fx_left, left_rect, d_loop);
+    // Render custom widget on top of area
+    f.render_widget(widget, area);
 }
 
 fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
