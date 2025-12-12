@@ -1,116 +1,186 @@
-.logo.vite:hover {
-  filter: drop-shadow(0 0 2em #747bff);
-}
-
-.logo.solid:hover {
-  filter: drop-shadow(0 0 2em #2f5d90);
-}
 :root {
-  font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
   font-size: 16px;
-  line-height: 24px;
+  line-height: 1.5;
   font-weight: 400;
 
-  color: #0f0f0f;
-  background-color: #f6f6f6;
+  color: #102a43;
+  background-color: transparent;
+  /* Handled by BubbleBackground */
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  width: 100%;
 }
 
 .container {
-  margin: 0;
-  padding-top: 10vh;
+  width: 100%;
+  max-width: 600px;
+  /* Mobile-first limit */
+  margin: 0 auto;
+  padding: 1rem;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  text-align: center;
+  align-items: center;
+  position: relative;
+  z-index: 1;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: 0.75s;
+.app-title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #2b6cb0;
+  margin: 1rem 0 2rem;
+  text-shadow: 0 4px 10px rgba(160, 200, 250, 0.4);
+  letter-spacing: -0.05em;
+  background: linear-gradient(135deg, #4299e1 0%, #63b3ed 100%);
+  /* Fresh Sky Blue */
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
-.logo.tauri:hover {
-  filter: drop-shadow(0 0 2em #24c8db);
-}
-
-.row {
+/* FAB Styles */
+.fab {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #79b8ff 0%, #5aa9e6 100%);
+  color: white;
+  border: none;
+  font-size: 2rem;
   display: flex;
+  align-items: center;
   justify-content: center;
-}
-
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-
-a:hover {
-  color: #535bf2;
-}
-
-h1 {
-  text-align: center;
-}
-
-input,
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  color: #0f0f0f;
-  background-color: #ffffff;
-  transition: border-color 0.25s;
-  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
-}
-
-button {
+  box-shadow: 0 4px 15px rgba(90, 169, 230, 0.4);
   cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  z-index: 100;
 }
 
-button:hover {
-  border-color: #396cd8;
-}
-button:active {
-  border-color: #396cd8;
-  background-color: #e8e8e8;
+.fab:hover {
+  transform: translateY(-2px) rotate(90deg);
+  box-shadow: 0 6px 20px rgba(90, 169, 230, 0.6);
 }
 
-input,
-button {
-  outline: none;
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.6);
+  /* Semi-transparent white */
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease-out;
 }
 
-#greet-input {
-  margin-right: 5px;
+.modal-content {
+  width: 90%;
+  max-width: 500px;
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+}
+
+.close-modal-btn {
+  background: transparent;
+  color: #627d98;
+  border: none;
+  margin-top: 1rem;
+  text-decoration: underline;
+  cursor: pointer;
+  align-self: center;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .modal-overlay {
+    background: rgba(16, 42, 67, 0.7);
+  }
+
+  .close-modal-btn {
+    color: #bcccdc;
+  }
+}
+
+/* Glassmorphism shared styles */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    color: #f6f6f6;
-    background-color: #2f2f2f;
+    color: #f0f4f8;
   }
 
-  a:hover {
-    color: #24c8db;
+  .app-title {
+    background: linear-gradient(135deg, #f0f4f8 0%, #bcccdc 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
   }
 
-  input,
-  button {
-    color: #ffffff;
-    background-color: #0f0f0f98;
+  .glass-panel {
+    background: rgba(16, 42, 67, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
   }
-  button:active {
-    background-color: #0f0f0f69;
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+  :root {
+    font-size: 14px;
+  }
+
+  .container {
+    padding: 0.5rem;
+  }
+
+  .app-title {
+    font-size: 2rem;
+    margin: 0.5rem 0 1.5rem;
   }
 }

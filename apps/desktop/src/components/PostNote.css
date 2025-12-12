@@ -1,0 +1,114 @@
+.post-note-container {
+    width: 100%;
+    max-width: 100%;
+    /* Ensure it doesn't exceed parent */
+    margin: 0 auto 2rem;
+    padding: 1.5rem;
+    box-sizing: border-box;
+    /* Include padding in width */
+
+    /* Glassmorphism */
+    background: rgba(255, 255, 255, 0.65);
+    /* Lighter/More transparent */
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    border-radius: 20px;
+    box-shadow: 0 8px 32px rgba(188, 204, 220, 0.2);
+
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.post-note-container h3 {
+    margin-top: 0;
+    color: #486581;
+    margin-bottom: 1rem;
+}
+
+.post-note-container textarea {
+    width: 100%;
+    padding: 1rem;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    background: rgba(255, 255, 255, 0.4);
+    resize: vertical;
+    font-family: inherit;
+    font-size: 1rem;
+    margin-bottom: 1rem;
+    box-sizing: border-box;
+    /* Critical for layout stability */
+    transition: all 0.2s ease;
+}
+
+.post-note-container textarea:focus {
+    background: rgba(255, 255, 255, 0.8);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(121, 184, 255, 0.2);
+    /* Light blue focus ring */
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    /* Align button to right on mobile usually better for thumbs, but flex-end works */
+    gap: 1rem;
+    /* Space between items if we add more */
+    align-items: center;
+}
+
+.status {
+    font-size: 0.9rem;
+    color: #5aa9e6;
+    font-weight: 500;
+    margin-right: auto;
+    /* Pushes button to right */
+}
+
+.post-note-container button {
+    background: linear-gradient(135deg, #79b8ff 0%, #5aa9e6 100%);
+    /* Lighter, fresher blue gridient */
+    color: white;
+    border: none;
+    padding: 0.6rem 2rem;
+    border-radius: 25px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.1s, box-shadow 0.2s;
+    box-shadow: 0 4px 10px rgba(90, 169, 230, 0.3);
+}
+
+.post-note-container button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 12px rgba(90, 169, 230, 0.4);
+}
+
+.post-note-container button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+@media (prefers-color-scheme: dark) {
+    .post-note-container {
+        background: rgba(36, 59, 83, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .post-note-container h3 {
+        color: #f0f4f8;
+    }
+
+    .post-note-container textarea {
+        background: rgba(16, 42, 67, 0.4);
+        color: #f0f4f8;
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .post-note-container textarea:focus {
+        background: rgba(16, 42, 67, 0.8);
+    }
+
+    .post-note-container button {
+        background: linear-gradient(135deg, #243b53 0%, #486581 100%);
+    }
+}

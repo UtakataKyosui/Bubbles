@@ -1,0 +1,194 @@
+.bubble-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: -1;
+    overflow: hidden;
+    background: linear-gradient(180deg, #f7f9fc 0%, #eef3f7 100%);
+    /* Very pale background */
+}
+
+.bubble {
+    position: absolute;
+    border-radius: 50%;
+    /* Use a visible semi-transparent fill */
+    background: rgba(255, 255, 255, 0.25);
+    /* Stronger, more visible border */
+    border: 3px solid rgba(255, 255, 255, 0.9);
+    /* Stronger blue-ish glow */
+    box-shadow: 0 0 12px rgba(100, 200, 255, 0.5), inset 0 0 10px rgba(255, 255, 255, 0.4);
+    animation: float 8s infinite ease-in;
+    /* Fast speed */
+    opacity: 0.0;
+    will-change: transform, opacity;
+}
+
+/* More bubbles with varied sizes, positions, and speeds */
+.b1 {
+    width: 40px;
+    height: 40px;
+    left: 5%;
+    top: 100%;
+    animation-duration: 9s;
+    animation-delay: 0s;
+}
+
+.b2 {
+    width: 60px;
+    height: 60px;
+    left: 15%;
+    top: 100%;
+    animation-duration: 12s;
+    animation-delay: -2s;
+}
+
+.b3 {
+    width: 30px;
+    height: 30px;
+    left: 25%;
+    top: 100%;
+    animation-duration: 8s;
+    animation-delay: -5s;
+}
+
+.b4 {
+    width: 50px;
+    height: 50px;
+    left: 35%;
+    top: 100%;
+    animation-duration: 11s;
+    animation-delay: -1s;
+}
+
+.b5 {
+    width: 70px;
+    height: 70px;
+    left: 45%;
+    top: 100%;
+    animation-duration: 14s;
+    animation-delay: -3s;
+}
+
+.b6 {
+    width: 45px;
+    height: 45px;
+    left: 55%;
+    top: 100%;
+    animation-duration: 10s;
+    animation-delay: -4s;
+}
+
+.b7 {
+    width: 55px;
+    height: 55px;
+    left: 65%;
+    top: 100%;
+    animation-duration: 13s;
+    animation-delay: -6s;
+}
+
+.b8 {
+    width: 25px;
+    height: 25px;
+    left: 75%;
+    top: 100%;
+    animation-duration: 7s;
+    animation-delay: -2s;
+}
+
+.b9 {
+    width: 65px;
+    height: 65px;
+    left: 85%;
+    top: 100%;
+    animation-duration: 15s;
+    animation-delay: -1s;
+}
+
+.b10 {
+    width: 35px;
+    height: 35px;
+    left: 95%;
+    top: 100%;
+    animation-duration: 9s;
+    animation-delay: -4s;
+}
+
+.b11 {
+    width: 50px;
+    height: 50px;
+    left: 10%;
+    top: 100%;
+    animation-duration: 11s;
+    animation-delay: -7s;
+}
+
+.b12 {
+    width: 80px;
+    height: 80px;
+    left: 30%;
+    top: 100%;
+    animation-duration: 16s;
+    animation-delay: -5s;
+}
+
+.b13 {
+    width: 40px;
+    height: 40px;
+    left: 60%;
+    top: 100%;
+    animation-duration: 10s;
+    animation-delay: -8s;
+}
+
+.b14 {
+    width: 20px;
+    height: 20px;
+    left: 80%;
+    top: 100%;
+    animation-duration: 6s;
+    animation-delay: -3s;
+}
+
+.b15 {
+    width: 90px;
+    height: 90px;
+    left: 40%;
+    top: 100%;
+    animation-duration: 18s;
+    animation-delay: -9s;
+}
+
+@keyframes float {
+    0% {
+        transform: translateY(0) scale(1);
+        opacity: 0;
+    }
+
+    10% {
+        opacity: 0.9;
+        /* More opaque */
+    }
+
+    90% {
+        opacity: 0.9;
+    }
+
+    100% {
+        transform: translateY(-110vh) scale(1.1);
+        opacity: 0;
+    }
+}
+
+@media (prefers-color-scheme: dark) {
+    .bubble-background {
+        background: linear-gradient(180deg, #102a43 0%, #243b53 100%);
+    }
+
+    .bubble {
+        background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.05));
+        box-shadow: 0 0 5px rgba(255, 255, 255, 0.2), inset 0 0 5px rgba(255, 255, 255, 0.1);
+    }
+}
