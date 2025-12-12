@@ -2,12 +2,21 @@ syntax = "proto3";
 
 package bubbles.xq;
 
+message Attachment {
+    string type = 1;
+    string url = 2; // media url
+    string media_type = 3; // mime type
+}
+
 // ActivityPubのNoteに相当
 message TextNote {
   string id = 1;
   string content = 2;
   string author_id = 3;
   int64 created_at = 4; // Unix timestamp
+  repeated string tags = 5; // hashtags
+  repeated Attachment attachments = 6;
+  repeated string mentions = 7; // mentioned user ids
 }
 
 // ActivityPubのPersonに相当
@@ -15,6 +24,8 @@ message User {
   string id = 1;
   string username = 2;
   string display_name = 3;
+  string icon_url = 4;
+  string summary = 5;
 }
 
 // Create Activity
@@ -24,7 +35,7 @@ message CreateActivity {
   TextNote note = 3;
 }
 
-// サーバーへのリクエスト
+// サーバーへのリクエスト（Batch対応も視野に）
 message PostActivityRequest {
   CreateActivity activity = 1;
 }
