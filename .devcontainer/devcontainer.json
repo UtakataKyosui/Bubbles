@@ -1,0 +1,25 @@
+{
+  "name": "Bubbles Dev Container",
+  "image": "mcr.microsoft.com/devcontainers/base:bookworm",
+  "features": {},
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "rust-lang.rust-analyzer",
+        "tamasfe.even-better-toml",
+        "serayuzgur.crates"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash"
+      }
+    }
+  },
+  "postCreateCommand": "bash -c 'curl -fsSL https://moonrepo.dev/install/proto.sh | bash -s -- --yes && echo \"proto installed successfully!\"'",
+  "remoteUser": "vscode",
+  "containerEnv": {
+    "PROTO_HOME": "/home/vscode/.proto"
+  },
+  "remoteEnv": {
+    "PATH": "${containerEnv:PATH}:/home/vscode/.proto/bin:/home/vscode/.proto/shims"
+  }
+}
