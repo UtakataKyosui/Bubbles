@@ -1,0 +1,27 @@
+[package]
+name = "xq-prototype"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+reqwest = { version = "0.11", features = ["blocking"] }
+axum = "0.7"
+tokio = { version = "1.0", features = ["full"] }
+prost = "0.13"
+prost-types = "0.13"
+bytes = "1.0"
+tracing = "0.1"
+tracing-subscriber = "0.3"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+markov = "1.1.0"
+rand = "0.9.2"
+
+[dev-dependencies]
+criterion = { version = "0.5", features = ["html_reports"] }
+
+[[bench]]
+name = "benchmark"
+harness = false
+[build-dependencies]
+prost-build = "0.13"
