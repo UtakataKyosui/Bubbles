@@ -5,8 +5,9 @@ use anyhow::Result;
 use bubble_core::wot::WotGraph;
 use std::collections::HashMap;
 use bubble_core::fact_check::FactChecker;
+use tui_textarea::TextArea;
 
-pub struct App {
+pub struct App<'a> {
     pub client: BubbleClient,
     pub timeline: Vec<Event>,
     pub should_quit: bool,
@@ -15,11 +16,12 @@ pub struct App {
     pub trust_scores: HashMap<PublicKey, f64>,
     pub fact_checker: FactChecker,
     pub verifications: HashMap<EventId, String>,
-    pub input: String,
+    pub input: TextArea<'a>,
     pub input_mode: bool,
+    pub scroll_state: ratatui::widgets::ListState,
 }
 
-impl App {
+impl<'a> App<'a> {
     pub async fn new() -> Result<Self> {
         // In a real app we would load keys from disk
         let client = BubbleClient::new(None).await?;
@@ -39,20 +41,22 @@ impl App {
             trust_scores: HashMap::new(),
             fact_checker: checker,
             verifications: HashMap::new(),
-            input: String::new(),
+            input: TextArea::default(),
             input_mode: false,
+            scroll_state: ratatui::widgets::ListState::default(),
         })
     }
 
     pub async fn publish_input(&mut self) {
-        if self.input.is_empty() {
+        let content = self.input.lines().join("\n");
+        if content.trim().is_empty() {
              return;
         }
         
-        match self.client.publish_text_note(&self.input).await {
+        match self.client.publish_text_note(&content).await {
             Ok(_) => {
                 self.status = "Published!".to_string();
-                self.input.clear();
+                self.input = TextArea::default();
                 self.input_mode = false;
                 self.refresh_timeline().await;
             },
@@ -126,5 +130,36 @@ impl App {
             }
         }
     }
-    
+
+    pub fn scroll_down(&mut self) {
+        if self.timeline.is_empty() { return; }
+        
+        let i = match self.scroll_state.selected() {
+            Some(i) => {
+                if i >= self.timeline.len() - 1 {
+                    self.timeline.len() - 1
+                } else {
+                    i + 1
+                }
+            }
+            None => 0,
+        };
+        self.scroll_state.select(Some(i));
+    }
+
+    pub fn scroll_up(&mut self) {
+        if self.timeline.is_empty() { return; }
+
+        let i = match self.scroll_state.selected() {
+            Some(i) => {
+                if i == 0 {
+                    0
+                } else {
+                    i - 1
+                }
+            }
+            None => 0,
+        };
+        self.scroll_state.select(Some(i));
+    }
 }

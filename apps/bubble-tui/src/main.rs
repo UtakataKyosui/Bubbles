@@ -28,11 +28,14 @@ async fn main() -> Result<()> {
     // Create app
     let mut app = App::new().await?;
 
-    // Initial fetch (blocking for simplicity in MVP)
+    // Initial fetch
     app.refresh_timeline().await;
 
+    let mut last_tick = std::time::Instant::now();
+    let tick_rate = std::time::Duration::from_secs(10); // Auto refresh every 10s
+
     loop {
-        terminal.draw(|f| ui(f, &app))?;
+        terminal.draw(|f| ui(f, &mut app))?;
 
         if crossterm::event::poll(std::time::Duration::from_millis(100))? {
             if let Event::Key(key) = event::read()? {
@@ -44,22 +47,24 @@ async fn main() -> Result<()> {
                         KeyCode::Esc => {
                             app.input_mode = false;
                         }
-                        KeyCode::Char(c) => {
-                            app.input.push(c);
+                        _ => {
+                            app.input.input(key);
                         }
-                        KeyCode::Backspace => {
-                            app.input.pop();
-                        }
-                        _ => {}
                      }
                 } else {
                     match key.code {
-                        KeyCode::Char('q') => break,
+                        KeyCode::Esc => break,
                         KeyCode::Char('r') => {
                             app.refresh_timeline().await;
                         }
                         KeyCode::Char('i') => {
                             app.input_mode = true;
+                        }
+                        KeyCode::Down | KeyCode::Char('j') => {
+                            app.scroll_down();
+                        }
+                        KeyCode::Up | KeyCode::Char('k') => {
+                            app.scroll_up();
                         }
                         _ => {}
                     }
@@ -69,6 +74,11 @@ async fn main() -> Result<()> {
         
         if app.should_quit {
             break;
+        }
+        
+        if last_tick.elapsed() >= tick_rate {
+            app.refresh_timeline().await;
+            last_tick = std::time::Instant::now();
         }
     }
 
