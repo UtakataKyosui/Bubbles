@@ -37,12 +37,17 @@ async fn main() -> Result<()> {
     loop {
         terminal.draw(|f| ui(f, &mut app))?;
 
-        if crossterm::event::poll(std::time::Duration::from_millis(100))? {
+        if crossterm::event::poll(std::time::Duration::from_millis(16))? {
             if let Event::Key(key) = event::read()? {
                 if app.input_mode {
+                     use crossterm::event::KeyModifiers;
                      match key.code {
                         KeyCode::Enter => {
-                            app.publish_input().await;
+                            if key.modifiers.contains(KeyModifiers::SHIFT) {
+                                app.input.input(key);
+                            } else {
+                                app.publish_input().await;
+                            }
                         }
                         KeyCode::Esc => {
                             app.input_mode = false;
